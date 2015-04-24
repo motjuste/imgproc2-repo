@@ -6,4 +6,4 @@
 - `/resources/` is where the needed resource images and files are stored
 - `/generated/` is where the generated images or files *may* be stored locally. The contents of this folder are not tracked.
 
-Opening the `*.ipynb` requires a iPython notebook. Don't worry if you don't care. This is my shenanigan.
+Opening the `*.ipynb` requires a iPython notebook server. Don't worry if you don't care. This is my shenanigan.
