@@ -61,7 +61,7 @@ sumK = 0
 k = 0
 for k in range(0, len(desc_eVals)-1):
     sumK += desc_eVals[k]
-    if sumK/sumTotal >= 0.9:
+    if sumK/sumTotal >= expecAcc:
         break
 
 # show k on the plot
