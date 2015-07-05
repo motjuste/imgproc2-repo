@@ -51,7 +51,6 @@ def orthogonalize(V, r):
         return (np.dot(v2, v1) / np.dot(v1, v1))*v1    
     
     for i in range (2, r):
-        print r
         V[i] = V[i-1] - project(V[i],V[i-1])
     return V
 #######################
@@ -107,8 +106,7 @@ for r in range (1,R+1):
             print "converged at t:", t
             break 
     
-    # template with rank ro=1
-    W = np.outer(u[_r],v[_r].T)
-    print W.shape
-    
-    plt.imshow(W, cmap=cm.gray)
+# template with rank ro=1
+W = np.outer(u[_r],v[_r].T)
+print W.shape
+plt.imshow(W, cmap=cm.gray)
