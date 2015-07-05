@@ -7,7 +7,6 @@ import numpy.linalg as la
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import distance
-#import gram_schmidt as orth
 
 Xtrain_file_list=[]
 Xtest_file_list=[]
@@ -30,39 +29,45 @@ neg_t = np.asarray([np.array(im) for im in neg_t])
 pos_t = pos_t - pos_t.mean()
 neg_t = neg_t - neg_t.mean()
 
-""" PROCEDURE FOR RANK ro=1 """
+
 
 ## Labelled images in form of {(Xi,yi)}
 # X=t_set[0]
 # y=t_set[1]
+Np = pos_t.shape[0]
+Nn = neg_t.shape[0]
 t_set = (np.concatenate((pos_t,
                          neg_t)), 
-         np.concatenate((np.ones((pos_t.shape[0],),dtype=np.int8),
-                         np.ones((neg_t.shape[0],),dtype=np.int8)*-1)))
+         np.concatenate((np.ones(Np)/Np,
+                         np.ones(Nn)*-1/Nn)))
 
 print t_set[0].shape, t_set[1].shape
 
-#R = [1,3,9]
-#R = [1,2,3,4,5,6,7,8,9]
-R = [1,2,3]
+# Based on modified Gram-Schmidt
+# https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process#Numerical_stability    
+def orthogonalize(V, r):
+    def project(v1, v2):
+        #return map((lambda x : x * (np.dot(v2, v1) / np.dot(v1, v1))), v1)
+        return (np.dot(v2, v1) / np.dot(v1, v1))*v1    
+    
+    for i in range (2, r):
+        print r
+        V[i] = V[i-1] - project(V[i],V[i-1])
+    return V
+#######################
+
+R = 3
 (m,n) = t_set[0][0].shape
-u = np.empty((len(R),m))
-v = np.empty((len(R),n))
+u = np.empty((R,m))
+v = np.empty((R,n))
 print u.shape, v.shape
-for r in R:
-    # zero-indexify r ! 
-    _r = r-1
+for r in range (1,R+1):
+    _r = r-1 # zero-indexify r ! 
     u[_r] = np.random.rand(m)
     v[_r] = np.zeros(n)
     
-    # projection
-    def proj(v1, v2):
-        return map((lambda x : x * (np.dot(v2, v1) / np.dot(v1, v1))), v1)
-    
     # Orthogonalize u
-    if r>1:
-        for i in range (2, r):
-            u[i] = u[i-1] - proj(u[i],u[i-1])
+    u = orthogonalize(u,r)
             
     
     t_MAX = 10**2 # Stop at t_MAX if didn't converge
@@ -81,9 +86,7 @@ for r in R:
         #print v[_r].shape
         
         # Orthogonalize v
-        if r>1:
-            for i in range (2, r):
-                v[i] = v[i-1] - orth.proj(v[i],v[i-1])
+        v = orthogonalize(v,r)
         
         # Contraction: sum u with 1-st dimension of t_set[0]
         X = np.tensordot(t_set[0], v[_r], axes=([2], [0]) )
@@ -94,9 +97,7 @@ for r in R:
         #print u[_r].shape
         
         # Orthogonalize u
-        if r>1:
-            for i in range (2, r):
-                u[i] = u[i-1] - orth.proj(u[i],u[i-1])
+        u = orthogonalize(u,r)
         
         #print sum(u[_r]),sum(prev_u)
         
