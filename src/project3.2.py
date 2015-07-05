@@ -132,7 +132,7 @@ def classify(I, W, theta):
 #    print "after padding", I.shape, res_map.shape
     
     
-    res_map = ndimage.filters.gaussian_filter(res_map, sigma=3)
+    #res_map = ndimage.filters.gaussian_filter(res_map, sigma=2)
     
     fig = plt.figure()
     a=fig.add_subplot(1,2,2)
@@ -144,15 +144,17 @@ def classify(I, W, theta):
     a.set_title('Test image')
     
     Theta = np.ones(res_map.shape)*theta
-    return res_map>=Theta # y
+    return res_map>=Theta # y: boolean matrix of y(i,j)
     
     #return 1 if np.dot(W,X) >= theta else -1
+
 
 """ Import and classify the test data """
 #for i in range (0, uiucTest):
 for i in range (0, 50):
-    t_img = np.array(Image.open(uiucTest[i]).convert('L'))
-    y = classify(t_img,W,170)
+    #t_img = np.array(Image.open(uiucTest[i]).convert('L'))
+    #y = classify(t_img,W,240)
+    y = classify(pos_t[i],W,240)
     
     for i in range (0,y.shape[0]):
         for j in range (0,y.shape[1]):
