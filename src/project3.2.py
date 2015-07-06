@@ -10,6 +10,8 @@ import image_ops
 from scipy import signal
 from matplotlib.patches import Rectangle
 from scipy import ndimage
+import scipy
+import pylab
 
 Xtrain_file_list=[]
 Xtest_file_list=[]
@@ -31,6 +33,7 @@ neg_t = np.asarray([np.array(im) for im in neg_t])
 
 m = (pos_t.mean() + neg_t.mean())/2
 print "mean",m
+np.save("t_set-mean", m)
 
 ## Labelled images in form of {(Xi,yi)}
 # X <= t_set[0]
@@ -66,7 +69,7 @@ print u.shape, v.shape
 for r in range (1,R+1):
     _r = r-1 # zero-indexify r ! 
     u[_r] = np.random.rand(m)
-    v[_r] = np.zeros(n)
+    v[_r] = np.empty(n)
     
     # Orthogonalize u
     u = orthogonalize(u,r)
@@ -119,47 +122,32 @@ for r in range (1,R+1):
 W = sum(w)
 print "W", W.shape
 plt.imshow(W, cmap=cm.gray)
-
-# construct classifier
-def classify(I, W, theta):
-    res_map = signal.convolve2d(I,W,mode='same', fillvalue=127)-m # zero-meaned
-    res_map = image_ops.normalize_array(res_map)
-    
-#    print I.shape, res_map.shape
-#    p0 = (I.shape[0]-res_map.shape[0])/2
-#    p1 = (I.shape[1]-res_map.shape[1])/2 
-#    res_map= np.pad(res_map, ((p0,p0),(p1,p1)), 'constant', constant_values=(0,0))
-#    print "after padding", I.shape, res_map.shape
-    
-    
-    #res_map = ndimage.filters.gaussian_filter(res_map, sigma=2)
-    
-    fig = plt.figure()
-    a=fig.add_subplot(1,2,2)
-    plt.imshow(res_map,cmap=cm.gray)
-    a.set_title('Response map')    
-    ###    
-    a=fig.add_subplot(1,2,1)
-    plt.imshow(I,cmap=cm.gray)
-    a.set_title('Test image')
-    
-    Theta = np.ones(res_map.shape)*theta
-    return res_map>=Theta # y: boolean matrix of y(i,j)
-    
-    #return 1 if np.dot(W,X) >= theta else -1
+#plt.savefig("projection_w_r=9")
+W.dump("projection_w.dat")
 
 
-""" Import and classify the test data """
-#for i in range (0, uiucTest):
-for i in range (0, 50):
+neg_m = np.empty(neg_t.shape[0])
+for i in range (0, neg_t.shape[0]):
     #t_img = np.array(Image.open(uiucTest[i]).convert('L'))
     #y = classify(t_img,W,240)
-    y = classify(pos_t[i],W,240)
+    neg_m[i] = signal.convolve2d(neg_t[i],W,mode='same', fillvalue=127).max()
+#neg_m = image_ops.normalize_array(neg_m)
+print np.average(neg_m)
     
-    for i in range (0,y.shape[0]):
-        for j in range (0,y.shape[1]):
-            if y[i][j]:
-                currentAxis = plt.gca()
-                currentAxis.add_patch(Rectangle((j-15,i-10), 30, 20, fill=False, edgecolor="red"))
+    
+pos_m = np.empty(pos_t.shape[0])
+for i in range (0, pos_t.shape[0]):
+    #t_img = np.array(Image.open(uiucTest[i]).convert('L'))
+    #y = classify(t_img,W,240)
+    pos_m[i] = signal.convolve2d(pos_t[i],W,mode='same', fillvalue=127).max()
+#pos_m = image_ops.normalize_array(pos_m)
+print np.average(pos_m)
 
-    
+plt.figure()
+plt.hist(neg_m, 10, histtype='stepfilled', stacked=True, fill=True,  color='r', label='neg_t', normed=True)
+plt.hist(pos_m, 10, histtype='stepfilled', stacked=True, fill=True, color='g', alpha=0.8, label='pos_t', normed=True)
+plt.xlabel("Max Value")
+plt.ylabel("")
+plt.legend()
+plt.show()
+print "min pos", pos_m.min()
