@@ -12,6 +12,8 @@ from matplotlib.patches import Rectangle
 from scipy import ndimage
 import scipy
 import pylab
+from skimage.feature import peak_local_max
+
 
 
 uiucTest = glob.glob('../resources/uiucTest/TEST_*.pgm')
@@ -32,6 +34,9 @@ def classify(I, W, theta):
     # Smooth the response map
     #res_map = ndimage.filters.gaussian_filter(res_map, sigma=2)
     
+    coord_local_max = peak_local_max(res_map, min_distance=20, threshold_abs=theta, exclude_border=False)
+    loc_max_res_map = res_map[coord_local_max[:, 0], coord_local_max[:, 1].T]
+    
     fig = plt.figure()
     a=fig.add_subplot(1,2,2)
     plt.imshow(res_map,cmap=cm.gray)
@@ -41,35 +46,19 @@ def classify(I, W, theta):
     plt.imshow(I,cmap=cm.gray)
     a.set_title('Test image')
     
-    Theta = np.ones(res_map.shape)*theta
-    return res_map>=Theta # y: boolean matrix of y(i,j)
-    #return 1 if np.dot(W,X) >= theta else -1
-
-def quality_measure_img(img_i, x, y):
-    points = np.empty((len(x),2))
-    for i in range (0, len(x)):
-        points[i][0] = x[i]
-        points[i][1] = y[i]
-        
-    points.dump('points/'+str(img_i)+'.dat')
+    return coord_local_max
 
 """ Import and classify the test data """
 theta = 235
-for img_i in range (0, len(uiucTest)):
-#for img_i in range (0, 30):
+#for img_i in range (0, len(uiucTest)):
+for img_i in range (0, 50):
     t_img = np.array(Image.open(uiucTest[img_i]).convert('L'))
-    y = classify(t_img,W,theta)
+    coord_local_max = classify(t_img,W,theta)
     
     res_points_x = []
     res_points_y = []
-    for i in range (0,y.shape[0]):
-        for j in range (0,y.shape[1]):
-            if y[i][j]:
-                res_points_x = np.append(res_points_x, i)
-                res_points_y = np.append(res_points_y, j)
-                currentAxis = plt.gca()
-                currentAxis.add_patch(Rectangle((j-15,i-10), 30, 20, fill=False, edgecolor="red"))
-    
-    quality_measure_img(img_i, res_points_x, res_points_y)
-    
+    for r in coord_local_max:
+        currentAxis = plt.gca()
+        currentAxis.add_patch(Rectangle((r[1]-15,r[0]-10), 30, 20, fill=False, edgecolor="red"))
+        
     

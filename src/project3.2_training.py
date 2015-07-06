@@ -84,28 +84,22 @@ for r in range (1,R+1):
         
         # Contraction: sum u with 1-st dimension of t_set[0]
         X = np.tensordot(u[_r], t_set[0], axes=([0], [1]) )
-        #print "contraction uX ", X.shape
         
         # UPDATE v
         v[_r] = np.dot(la.pinv(np.dot(X.T,X)),np.dot(X.T,t_set[1]))
-        #print v[_r].shape
         
         # Orthogonalize v
         v = orthogonalize(v,r)
         
         # Contraction: sum u with 1-st dimension of t_set[0]
         X = np.tensordot(t_set[0], v[_r], axes=([2], [0]) )
-        #print "contraction Xv ", X.shape
         
         # UPDATE u
         u[_r] = np.dot(la.pinv(np.dot(X.T,X)),np.dot(X.T,t_set[1]))
-        #print u[_r].shape
         
         # Orthogonalize u
         u = orthogonalize(u,r)
-        
-        #print sum(u[_r]),sum(prev_u)
-        
+                
         diff = abs(sum(u[_r])-prev_u_sum)
         print EPSILON, "<-", diff
         if diff <= EPSILON:
@@ -114,9 +108,7 @@ for r in range (1,R+1):
     # endfor
             
     # add template to templates vector w
-    w[_r] = np.outer(u[_r],v[_r].T)
-    #print w[_r].shape
-    
+    w[_r] = np.outer(u[_r],v[_r].T)    
 # endfor
 
 W = sum(w)
@@ -125,7 +117,7 @@ plt.imshow(W, cmap=cm.gray)
 #plt.savefig("projection_w_r=9")
 W.dump("projection_w.dat")
 
-
+# Find suitable theta 
 neg_m = np.empty(neg_t.shape[0])
 for i in range (0, neg_t.shape[0]):
     #t_img = np.array(Image.open(uiucTest[i]).convert('L'))
